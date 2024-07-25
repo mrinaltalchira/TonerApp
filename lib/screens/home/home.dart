@@ -125,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.zero,
                 children: <Widget>[
                   SizedBox(
+                    height: 150,
                     child: DrawerHeader(
                       decoration: const BoxDecoration(
                         color: Colors.transparent,
@@ -137,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ).createShader(bounds);
                         },
                         blendMode: BlendMode.srcATop,
-                        child: Center(child: Text("Trako",style: TextStyle(fontSize: 25),)),
+                        child: const Center(child: Text("Trako",style: TextStyle(fontSize: 35,fontFamily:'KalniaGlaze'),)),
                       ),
                     ),
                   ),
@@ -253,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class ConfirmLogoutDialog extends StatelessWidget {
+
   final VoidCallback onConfirm;
 
   const ConfirmLogoutDialog({Key? key, required this.onConfirm})

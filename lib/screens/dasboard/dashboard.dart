@@ -4,6 +4,9 @@ import 'package:Trako/network/ApiService.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import '../../pref_manager.dart';
+import '../authFlow/signin.dart';
+
 class CategoriesDashboard extends StatefulWidget {
   const CategoriesDashboard({Key? key}) : super(key: key);
 
@@ -28,12 +31,12 @@ class _CategoriesDashboardState extends State<CategoriesDashboard> {
   @override
   void initState() {
     super.initState();
-    dashboardFuture = getDashboard();
+    dashboardFuture = getDashboard(context);
   }
 
-  Future<DashboardResponse> getDashboard() async {
+  Future<DashboardResponse> getDashboard(BuildContext context) async {
     try {
-      return await _apiService.getDashboard();
+      return await _apiService.getDashboard(context);
     } catch (e) {
       print('Error fetching dashboard: $e');
       throw Exception('Failed to fetch dashboard data.');
@@ -57,7 +60,7 @@ class _CategoriesDashboardState extends State<CategoriesDashboard> {
 
   Future<void> _refreshData() async {
     setState(() {
-      dashboardFuture = getDashboard();
+      dashboardFuture = getDashboard(context);
     });
     await dashboardFuture;
   }
@@ -80,7 +83,7 @@ class _CategoriesDashboardState extends State<CategoriesDashboard> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
+            print('Error: ${snapshot.hasError}');
           } else if (snapshot.hasData) {
             data = snapshot.data!.data.details;
             graphData = snapshot.data!.data.graphData;

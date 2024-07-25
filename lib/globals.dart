@@ -1,4 +1,5 @@
 // Define your global variables here
+import 'package:Trako/screens/authFlow/signin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Trako/color/colors.dart';
@@ -7,6 +8,19 @@ const double radiusTextField = 21.0;
 const double radiusContainerTextField = 21.0;
 const double heightEditText = 50.0;
 const double appBarIconHeight = 30.0;
+
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+void navigateToAuthProcess() {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    navigatorKey.currentState?.pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const AuthProcess(),
+      ),
+    );
+  });
+}
 
 void showSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(

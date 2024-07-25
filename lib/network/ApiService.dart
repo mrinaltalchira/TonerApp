@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Trako/globals.dart';
+import 'package:Trako/screens/authFlow/signin.dart';
 import 'package:dio/dio.dart';
 import 'package:Trako/model/all_clients.dart';
 import 'package:Trako/model/all_machine.dart';
@@ -11,9 +13,20 @@ import 'package:Trako/model/supply_fields_data.dart';
 import 'package:Trako/model/user_profie.dart';
 import 'package:Trako/pref_manager.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import '../screens/home/home.dart';
+
 
 
 class LoggerInterceptor extends Interceptor {
+
+
+  final VoidCallback handleUnauthorizedErrorCallback;
+
+  LoggerInterceptor({required this.handleUnauthorizedErrorCallback});
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     print("Request to: ${options.uri}");
@@ -35,18 +48,22 @@ class LoggerInterceptor extends Interceptor {
   void onError(DioError err, ErrorInterceptorHandler handler) {
     print("Error from: ${err.requestOptions.uri}");
     print("Error Message: ${err.message}");
-    if (err.response != null) {
-      print("Error Data: ${err.response?.data}");
+
+    if (err.response?.statusCode == 401) {
+      handleUnauthorizedErrorCallback();
     }
-    return super.onError(err, handler);
+
+    // Continue with other errors
+    super.onError(err, handler);
   }
+
 }
 
 
 class ApiService {
 
-  // final String baseUrl = 'https://trako.tracesci.in/api';
-  final String baseUrl = 'http://192.168.2.177:8080/api';
+  final String baseUrl = 'https://trako.tracesci.in/api';
+  // final String baseUrl = 'http://192.168.2.177:8080/api';
   late Dio _dio;
   late String? token;
 
@@ -57,6 +74,7 @@ class ApiService {
   Future<void> initializeApiService() async {
     try {
       token = await PrefManager().getToken();
+      print(token);
 
       BaseOptions options = BaseOptions(
         baseUrl: baseUrl,
@@ -66,7 +84,7 @@ class ApiService {
 
       // Create a custom HttpClientAdapter that disables SSL verification
       final httpClientAdapter = DefaultHttpClientAdapter();
-      httpClientAdapter.onHttpClientCreate = (client){
+      httpClientAdapter.onHttpClientCreate = (client) {
         client.badCertificateCallback =
             (X509Certificate cert, String host, int port) => true;
         return null;
@@ -74,7 +92,8 @@ class ApiService {
 
       _dio = Dio(options);
       _dio.httpClientAdapter = httpClientAdapter;
-      _dio.interceptors.add(LoggerInterceptor());
+      _dio.interceptors.add(LoggerInterceptor(handleUnauthorizedErrorCallback: () { navigateToAuthProcess(); }));
+      LoggerInterceptor(handleUnauthorizedErrorCallback: navigateToAuthProcess);
     } catch (e) {
       print('Failed to initialize ApiService: $e');
       throw Exception('Failed to initialize ApiService');
@@ -113,7 +132,9 @@ class ApiService {
       throw Exception('Failed to connect to the server.');
     }
   }
-  Future<Map<String, dynamic>> login(String? email, String? phone, String password) async {
+
+  Future<Map<String, dynamic>> login(String? email, String? phone,
+      String password) async {
     try {
       await initializeApiService(); // Ensure token is initialized before login
 
@@ -216,7 +237,7 @@ class ApiService {
           "isActive": isActive,
           'address': address,
           'contact_person': contactPerson,
-          'id':id
+          'id': id
         }),
       );
 
@@ -251,7 +272,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = response.data;
         final clientsJson = data['data']['clients'] as List;
-        List<Client> clients = clientsJson.map((json) => Client.fromJson(json)).toList();
+        List<Client> clients = clientsJson.map((json) => Client.fromJson(json))
+            .toList();
         return clients;
       } else {
         throw Exception('Failed to load clients');
@@ -301,7 +323,6 @@ class ApiService {
   }
 
 
-
   Future<Map<String, dynamic>> updateMachine({
     required String id,
     required String model_name,
@@ -323,7 +344,7 @@ class ApiService {
           },
         ),
         data: json.encode({
-          'id':id,
+          'id': id,
           'model_name': model_name,
           'model_code': model_code,
           'isActive': isActive,
@@ -362,7 +383,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = response.data;
         final machineJson = data['data']['machine'] as List;
-        List<Machine> machine = machineJson.map((json) => Machine.fromJson(json)).toList();
+        List<Machine> machine = machineJson.map((json) =>
+            Machine.fromJson(json)).toList();
         return machine;
       } else {
         throw Exception('Failed to load machine');
@@ -450,7 +472,7 @@ class ApiService {
         ),
         data: json.encode({
           "name": name,
-          "user_id":user_id,
+          "user_id": user_id,
           "email": email,
           "phone": phone,
           "is_active": isActive,
@@ -536,12 +558,13 @@ class ApiService {
           "client_id": client_id,
           "date_time": date_time,
           "qr_code": qr_code,
-          if (reference!= null && reference.isNotEmpty) 'reference': reference,
+          if (reference != null && reference.isNotEmpty) 'reference': reference,
         }),
       );
 
       if (response.statusCode == 200) {
-        return response.data?? {}; // Return an empty map if response.data is null
+        return response.data ??
+            {}; // Return an empty map if response.data is null
       } else {
         throw Exception('Failed to add supply');
       }
@@ -596,7 +619,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = response.data;
         final supplyJson = data['data']['supply'] as List;
-        List<Supply> supply = supplyJson.map((json) => Supply.fromJson(json)).toList();
+        List<Supply> supply = supplyJson.map((json) => Supply.fromJson(json))
+            .toList();
         return supply;
       } else {
         throw Exception('Failed to load supply');
@@ -651,7 +675,7 @@ class ApiService {
 
 ///////////////////////////////// Dashboard
 
-  Future<DashboardResponse> getDashboard() async {
+  Future<DashboardResponse> getDashboard(BuildContext context) async {
     try {
       await initializeApiService(); // Ensure token is initialized before making API calls
 
@@ -671,9 +695,9 @@ class ApiService {
         var responseData = response.data;
         var dashboardResponse = DashboardResponse.fromJson(responseData);
         return dashboardResponse;
-      } else if(response.statusCode == 401){
+      } else if (response.statusCode == 401) {
         throw Exception('Failed to fetch dashboard details');
-      }else {
+      } else {
         throw Exception('Failed to fetch dashboard details');
       }
     } catch (e) {

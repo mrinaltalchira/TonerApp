@@ -17,6 +17,7 @@ import 'package:Trako/screens/users/user_status.dart';
 import 'package:Trako/screens/users/users.dart';
 
 import 'ThemeNotifier.dart';
+import 'globals.dart';
 
 void main() {
   runApp(
@@ -61,6 +62,7 @@ class MyApp extends StatelessWidget {
       builder: (context, themeNotifier, child) {
         return MaterialApp(
           navigatorObservers: [routeObserver],
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: themeNotifier.currentTheme,
           home: FutureBuilder<bool?>(

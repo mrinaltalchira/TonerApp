@@ -47,6 +47,7 @@ class _AddUserState extends State<AddUser> {
       phoneController.text = phNumber[1];
       authorityController.text = widget.user!.userRole;
       activeStatusController.text = widget.user!.isActive;
+      selectedUserRole = widget.user!.userRole.toString();
 
       machineModuleChecked = widget.user!.machineModule == '0';
       clientModuleChecked = widget.user!.clientModule == '0';
@@ -163,7 +164,7 @@ class _AddUserState extends State<AddUser> {
            email: emailController.text,
            phone: fullPhoneNumber.toString(),
            isActive: activeChecked ? '0' : '1',
-           userRole: selectedUserRole ?? 'user', // Default to 'user' if not selected
+           userRole: selectedUserRole ?? 'User', // Default to 'user' if not selected
            password: passwordController.text,
            machineModule: machineModuleChecked ? '0' : '1',
            clientModule: clientModuleChecked ? '0' : '1',
@@ -217,7 +218,7 @@ class _AddUserState extends State<AddUser> {
            email: emailController.text,
            phone: fullPhoneNumber.toString(),
            isActive: activeChecked ? '0' : '1',
-           userRole: selectedUserRole ?? 'user', // Default to 'user' if not selected
+           userRole: selectedUserRole ?? 'User', // Default to 'user' if not selected
            password: passwordController.text,
            machineModule: machineModuleChecked ? '0' : '1',
            clientModule: clientModuleChecked ? '0' : '1',
@@ -569,7 +570,7 @@ class UserRolesSpinner extends StatelessWidget {
     return DropdownButtonFormField<String>(
       value: selectedValue,
       hint: const Text('Select Role'),
-      items: ['Admin', 'Client', 'Logistic', 'User'].map((String value) {
+      items: ["Admin", "Client", "Logistic", "User"].map((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
